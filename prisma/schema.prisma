@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  email      String    @unique
+  password   String
+  role       String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  Patient    Patient?
+  Doctor     Doctor?
+  Message    Message[]
+}
+
+model Patient {
+  id         Int      @id @default(autoincrement())
+  user_id    Int      @unique
+  user       User     @relation(fields: [user_id], references: [id])
+  name       String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  Chat       Chat[]
+  Order      Order[]
+}
+
+model Doctor {
+  id             Int      @id @default(autoincrement())
+  user_id        Int      @unique
+  user           User     @relation(fields: [user_id], references: [id])
+  name           String
+  specialization String
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+  Chat           Chat[]
+}
+
+model Medicine {
+  id          Int         @id @default(autoincrement())
+  name        String
+  description String
+  price       Float
+  stock       Int
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+  OrderItem   OrderItem[]
+}
+
+model Chat {
+  id         Int       @id @default(autoincrement())
+  patient_id Int
+  patient    Patient   @relation(fields: [patient_id], references: [id])
+  doctor_id  Int
+  doctor     Doctor    @relation(fields: [doctor_id], references: [id])
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  Message    Message[]
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  chat_id    Int
+  chat       Chat     @relation(fields: [chat_id], references: [id])
+  sender_id  Int
+  user       User     @relation(fields: [sender_id], references: [id])
+  message    String
+  created_at DateTime @default(now())
+}
+
+model Order {
+  id           Int         @id @default(autoincrement())
+  patient_id   Int
+  patient      Patient     @relation(fields: [patient_id], references: [id])
+  total_amount Float
+  status       String
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @updatedAt
+  OrderItem    OrderItem[]
+}
+
+model OrderItem {
+  id          Int      @id @default(autoincrement())
+  order_id    Int
+  order       Order    @relation(fields: [order_id], references: [id])
+  medicine_id Int
+  medicine    Medicine @relation(fields: [medicine_id], references: [id])
+  quantity    Int
+  price       Float
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+}
